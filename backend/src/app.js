@@ -16,6 +16,9 @@ app.get('/api/salud', (req, res) => res.json({ estado: 'ok' }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/usuarios', require('./routes/usuarios'));
 app.use('/api/parqueadero', require('./routes/parqueadero'));
+app.use('/api/integrantes', require('./routes/integrantes'));
+app.use('/api/motocicletas', require('./routes/motocicletas'));
+app.use('/api/ingresos', require('./routes/ingresos'));
 
 app.use((req, res) => res.status(404).json({ mensaje: 'Ruta no encontrada' }));
 

@@ -37,6 +37,10 @@ label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 14px; 
 .columnas { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
 .columnas.dos { grid-template-columns: 1fr 1fr; }
 .vacio { color:#8a96a6; font-size:14px; }
+.tabla-desbordable { overflow-x:auto; }
+.resultado-consulta { margin-top:16px; padding-top:12px; border-top:1px solid var(--borde); }
+.resultado-consulta h4 { margin:0; }
+.resultado-consulta p { font-size:14px; }
 .rejilla { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
 .rejilla input, .rejilla select { margin:0; }
 table { width:100%; border-collapse: collapse; font-size:14px; }

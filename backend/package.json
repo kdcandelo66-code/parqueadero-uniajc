@@ -1,14 +1,14 @@
 {
   "name": "parqueadero-uniajc-backend",
   "version": "1.0.0",
-  "description": "API REST del sistema de control de acceso del parqueadero de motocicletas - UNIAJC (Sprint 1)",
+  "description": "API REST del sistema de control de acceso del parqueadero de motocicletas - UNIAJC",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "crear-admin": "node scripts/crear-usuario.js Administrador",
     "crear-guarda": "node scripts/crear-usuario.js Guarda",
-    "test": "node --test tests/sprint1.test.js"
+    "test": "node --test tests/sprint1.test.js tests/sprint2.test.js"
   },
   "engines": { "node": ">=20" },
   "dependencies": {

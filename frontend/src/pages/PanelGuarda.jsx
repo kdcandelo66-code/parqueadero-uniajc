@@ -1,25 +1,52 @@
-// T11: prototipo del panel principal del guarda (Tabla 6).
-// Sprint 1: los indicadores de capacidad son reales (GET /api/parqueadero).
-// La búsqueda, los movimientos y los botones de ingreso/salida se conectan en los Sprints 2 y 3.
+// Panel del Guarda: consulta de autorización e ingreso de motocicletas.
 import { useEffect, useState } from 'react';
 import Encabezado from './Encabezado.jsx';
 import { api } from '../services/api.js';
 
 export default function PanelGuarda({ usuario, onSalir, resumenInicial = null }) {
   const [resumen, setResumen] = useState(resumenInicial);
-  const [error, setError] = useState('');
+  const [integrante, setIntegrante] = useState(null);
+  const [carne, setCarne] = useState('');
+  const [motocicleta, setMotocicleta] = useState('');
+  const [ingresos, setIngresos] = useState([]);
+  const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
 
-  useEffect(() => {
-    if (resumenInicial) return;
-    api.parqueadero().then(setResumen).catch((e) => setError(e.message));
-  }, [resumenInicial]);
+  async function cargarPanel() {
+    try {
+      const [p, i] = await Promise.all([api.parqueadero(), api.ingresosActivos()]);
+      setResumen(p);
+      setIngresos(i);
+    } catch (e) { setMensaje({ tipo: 'alerta', texto: e.message }); }
+  }
+  useEffect(() => { cargarPanel(); }, []);
+
+  async function consultar(e) {
+    e.preventDefault();
+    setMensaje({ tipo: '', texto: '' });
+    setIntegrante(null);
+    setMotocicleta('');
+    try {
+      const resultado = await api.consultarIntegrante(carne.trim());
+      setIntegrante(resultado);
+      setMotocicleta(resultado.motocicletas[0]?.id_motocicleta || '');
+    } catch (err) { setMensaje({ tipo: 'alerta', texto: err.message }); }
+  }
+
+  async function registrarIngreso() {
+    setMensaje({ tipo: '', texto: '' });
+    try {
+      await api.registrarIngreso(integrante.numero_carne, Number(motocicleta));
+      setMensaje({ tipo: 'exito', texto: 'Ingreso registrado correctamente.' });
+      await cargarPanel();
+    } catch (err) { setMensaje({ tipo: 'alerta', texto: err.message }); }
+  }
 
   return (
     <>
       <Encabezado usuario={usuario} onSalir={onSalir} />
       <main className="contenido">
         <h2>Panel del guarda</h2>
-        {error && <p className="alerta">{error}</p>}
+        {mensaje.texto && <p className={mensaje.tipo} role="status">{mensaje.texto}</p>}
         <section className="indicadores">
           <Indicador titulo="Capacidad total" valor={resumen?.capacidad_maxima} />
           <Indicador titulo="Ocupados" valor={resumen?.espacios_ocupados} tono="ocupado" />
@@ -29,28 +56,51 @@ export default function PanelGuarda({ usuario, onSalir, resumenInicial = null })
 
         <section className="tarjeta">
           <h3>Búsqueda rápida</h3>
-          <div className="busqueda">
-            <input placeholder="Número de carné o placa" disabled />
-            <button disabled>Consultar</button>
-          </div>
-          <p className="nota">Disponible en el Sprint 2 (HU-09 y HU-10): mostrará nombre, carné, programa,
-            estado de autorización, motocicleta, placa y botones de ingreso y salida.</p>
+          <form className="busqueda" onSubmit={consultar}>
+            <input placeholder="Número de carné" value={carne} onChange={(e) => setCarne(e.target.value)} required />
+            <button>Consultar</button>
+          </form>
+          {integrante && (
+            <div className="resultado-consulta">
+              <h4>{integrante.nombre_completo}</h4>
+              <p>Carné: {integrante.numero_carne} · Programa: {integrante.programa_academico}</p>
+              <p className={integrante.estado_autorizacion === 'AUTORIZADO' ? 'exito' : 'alerta'}>
+                {integrante.estado_autorizacion}
+                {integrante.estado_autorizacion === 'NO AUTORIZADO' && ` · Motivo: ${integrante.motivo_bloqueo || 'No especificado'}`}
+              </p>
+              {integrante.motocicletas.length > 0 ? (
+                <div className="fila">
+                  <label>Motocicleta asociada
+                    <select value={motocicleta} onChange={(e) => setMotocicleta(e.target.value)}>
+                      {integrante.motocicletas.map((m) =>
+                        <option key={m.id_motocicleta} value={m.id_motocicleta}>{m.placa} · {m.marca} {m.modelo} · {m.color}</option>)}
+                    </select>
+                  </label>
+                  <button type="button" disabled={integrante.estado_autorizacion !== 'AUTORIZADO'} onClick={registrarIngreso}>
+                    Registrar ingreso
+                  </button>
+                </div>
+              ) : <p className="nota">No tiene motocicletas activas asociadas.</p>}
+            </div>
+          )}
         </section>
 
-        <div className="columnas">
-          <section className="tarjeta">
-            <h3>Últimos ingresos</h3>
-            <p className="vacio">Sin movimientos registrados (Sprint 2 · HU-11)</p>
-          </section>
-          <section className="tarjeta">
-            <h3>Últimas salidas</h3>
-            <p className="vacio">Sin movimientos registrados (Sprint 3 · HU-12)</p>
-          </section>
-          <section className="tarjeta">
-            <h3>Alertas y novedades</h3>
-            <p className="vacio">Sin novedades (Sprint 3 · HU-15)</p>
-          </section>
-        </div>
+        <section className="tarjeta">
+          <h3>Ingresos activos</h3>
+          {ingresos.length ? (
+            <div className="tabla-desbordable">
+              <table>
+                <thead><tr><th>Hora</th><th>Integrante</th><th>Carné</th><th>Placa</th><th>Guarda</th></tr></thead>
+                <tbody>{ingresos.map((i) => (
+                  <tr key={i.id_ingreso}>
+                    <td>{new Date(i.fecha_hora_ingreso).toLocaleString()}</td>
+                    <td>{i.nombre_completo}</td><td>{i.numero_carne}</td><td>{i.placa}</td><td>{i.guarda}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          ) : <p className="vacio">Sin ingresos activos.</p>}
+        </section>
       </main>
     </>
   );

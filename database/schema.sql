@@ -39,6 +39,7 @@ CREATE TABLE estudiantes (
   correo_institucional  VARCHAR(120) NOT NULL,
   telefono              VARCHAR(20)  NULL,
   estado_autorizacion   ENUM('AUTORIZADO','NO AUTORIZADO') NOT NULL DEFAULT 'NO AUTORIZADO',
+  motivo_bloqueo        VARCHAR(300) NULL,
   estado                ENUM('activo','inactivo') NOT NULL DEFAULT 'activo'
 );
 
@@ -59,6 +60,8 @@ CREATE TABLE estudiante_motocicleta (
   nombre_propietario  VARCHAR(120) NULL,
   fecha_inicio        DATE NOT NULL,
   fecha_fin           DATE NULL,
+  motocicleta_activa INT GENERATED ALWAYS AS (IF(fecha_fin IS NULL, id_motocicleta, NULL)) STORED,
+  UNIQUE KEY uq_motocicleta_asociada_activa (motocicleta_activa),
   FOREIGN KEY (id_estudiante)  REFERENCES estudiantes(id_estudiante),
   FOREIGN KEY (id_motocicleta) REFERENCES motocicletas(id_motocicleta)
 );

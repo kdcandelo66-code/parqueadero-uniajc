@@ -28,4 +28,4 @@ Reglas verificadas por el esquema y la implementación actuales. Las restriccion
 ## Casos que las pruebas no cubren
 
 - La base de datos rechaza salidas repetidas o sin ingreso, pero todavía no existe una ruta de salida en este incremento.
-- Las reglas sobre autorización de estudiantes, tratamiento de novedades y otros flujos de ingreso deben validarse contra los requisitos de las historias correspondientes cuando se implementen.
+- Las reglas de autorización, asociación de motocicletas y registro de ingresos implementadas en el Sprint 2 están descritas en `docs/reglas-negocio-sprint2.md`. El tratamiento de novedades sigue pendiente.

@@ -31,4 +31,12 @@ export const api = {
   usuarios: () => pedir('GET', '/usuarios'),
   crearUsuario: (datos) => pedir('POST', '/usuarios', datos),
   actualizarUsuario: (id, datos) => pedir('PUT', `/usuarios/${id}`, datos),
+  integrantes: () => pedir('GET', '/integrantes'),
+  crearIntegrante: (datos) => pedir('POST', '/integrantes', datos),
+  actualizarAutorizacion: (carne, datos) => pedir('PUT', `/integrantes/${encodeURIComponent(carne)}/autorizacion`, datos),
+  consultarIntegrante: (carne) => pedir('GET', `/integrantes/${encodeURIComponent(carne)}`),
+  historialIntegrante: (carne) => pedir('GET', `/integrantes/${encodeURIComponent(carne)}/historial`),
+  crearMotocicleta: (datos) => pedir('POST', '/motocicletas', datos),
+  ingresosActivos: () => pedir('GET', '/ingresos/activos'),
+  registrarIngreso: (numero_carne, id_motocicleta) => pedir('POST', '/ingresos', { numero_carne, id_motocicleta }),
 };

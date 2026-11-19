@@ -1,0 +1,11 @@
+Ingrid Kevin — Registro de estudiantes: Implementé el formulario con validación de los datos obligatorios. Tuve que evitar que se repitiera el carné, así que agregué una validación para rechazar registros duplicados.
+
+Diego Adrian — Registro y asociación de motocicletas: Implementé el formulario para registrar una motocicleta y vincularla con un integrante. El inconveniente fue evitar placas repetidas o asociaciones inválidas; agregué las validaciones correspondientes.
+
+Brayan Nicolas — Historial estudiante-motocicleta: Implementé la consulta del historial por carné o placa, mostrando ingresos, salidas y responsables. Tuve que organizar los movimientos para relacionarlos con la asociación correcta y presentar también la permanencia.
+
+Dilan Jose — Consulta de estudiantes por carné: Implementé la búsqueda por carné para mostrar los datos del estudiante, su autorización y las motocicletas asociadas. Tuve que contemplar carnés no encontrados y normalizar la búsqueda para que no dependa de mayúsculas.
+
+Diego Adrian — Estados de autorización y mensajes de bloqueo: Implementé la visualización de los estados AUTORIZADO y NO AUTORIZADO, junto con el motivo del bloqueo. El inconveniente fue impedir que un estudiante no autorizado registrara un ingreso; deshabilité esa acción y mostré el motivo.
+
+Ingrid Kevin — Registro de ingreso y prevención de duplicados: Implementé el registro de ingreso para motocicletas autorizadas y vinculadas al estudiante. Tuve que evitar un segundo ingreso activo para la misma motocicleta; agregué el rechazo con un mensaje visible y mantuve la ocupación actualizada.

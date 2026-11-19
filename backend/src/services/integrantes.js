@@ -39,6 +39,7 @@ function validarMotocicleta(datos) {
     marca: texto(datos.marca),
     modelo: texto(datos.modelo),
     color: texto(datos.color),
+    estado: texto(datos.estado),
   };
   if (!/^[A-Z0-9-]{5,10}$/.test(moto.placa))
     throw new ErrorNegocio(400, 'La placa debe tener entre 5 y 10 caracteres alfanuméricos');
@@ -46,6 +47,8 @@ function validarMotocicleta(datos) {
     if (!moto[campo] || moto[campo].length > maximo)
       throw new ErrorNegocio(400, `El campo ${campo} es obligatorio (máximo ${maximo} caracteres)`);
   }
+  if (!['activa', 'inactiva'].includes(moto.estado))
+    throw new ErrorNegocio(400, 'El estado debe ser activa o inactiva');
   return moto;
 }
 
@@ -68,9 +71,18 @@ async function obtenerPorCarne(numeroCarne) {
   if (!integrante) throw new ErrorNegocio(404, 'Integrante no encontrado');
 
   const [motocicletas] = await db.query(
-    `SELECT m.id_motocicleta, m.placa, m.tipo, m.marca, m.modelo, m.color
+    `SELECT m.id_motocicleta, m.placa, m.tipo, m.marca, m.modelo, m.color,
+            m.estado AS estado_motocicleta, ultimo.estado_movimiento,
+            ultimo.fecha_hora_ingreso AS ultimo_ingreso
        FROM estudiante_motocicleta em
        JOIN motocicletas m ON m.id_motocicleta = em.id_motocicleta
+       LEFT JOIN (
+         SELECT i.id_motocicleta, i.estado_movimiento, i.fecha_hora_ingreso,
+                ROW_NUMBER() OVER (
+                  PARTITION BY i.id_motocicleta ORDER BY i.fecha_hora_ingreso DESC, i.id_ingreso DESC
+                ) AS posicion
+           FROM ingresos i
+       ) ultimo ON ultimo.id_motocicleta = m.id_motocicleta AND ultimo.posicion = 1
       WHERE em.id_estudiante = ? AND em.fecha_fin IS NULL AND m.estado = 'activa'
       ORDER BY m.placa`, [integrante.id_estudiante]);
   return { ...integrante, motocicletas };
@@ -128,8 +140,9 @@ async function registrarMotocicleta(datos) {
       [carne]);
     if (!integrante) throw new ErrorNegocio(404, 'Integrante activo no encontrado');
     const [resultado] = await conn.query(
-      `INSERT INTO motocicletas (placa, tipo, marca, modelo, color) VALUES (?, ?, ?, ?, ?)`,
-      [moto.placa, moto.tipo, moto.marca, moto.modelo, moto.color]);
+      `INSERT INTO motocicletas (placa, tipo, marca, modelo, color, estado)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [moto.placa, moto.tipo, moto.marca, moto.modelo, moto.color, moto.estado]);
     await conn.query(
       `INSERT INTO estudiante_motocicleta (id_estudiante, id_motocicleta, fecha_inicio)
        VALUES (?, ?, CURRENT_DATE)`, [integrante.id_estudiante, resultado.insertId]);
@@ -156,7 +169,9 @@ async function historial(numeroCarne) {
   const [ingresos] = await db.query(
     `SELECT em.id AS id_asociacion, i.id_ingreso, i.id_motocicleta,
             i.fecha_hora_ingreso, i.estado_movimiento,
-            u.nombre_completo AS guarda
+            u.nombre_completo AS guarda,
+            s.id_salida, s.fecha_hora_salida, s.tiempo_permanencia,
+            us.nombre_completo AS guarda_salida
        FROM ingresos i
        JOIN estudiante_motocicleta em
          ON em.id_estudiante = i.id_estudiante
@@ -164,6 +179,8 @@ async function historial(numeroCarne) {
         AND DATE(i.fecha_hora_ingreso) >= em.fecha_inicio
         AND (em.fecha_fin IS NULL OR DATE(i.fecha_hora_ingreso) <= em.fecha_fin)
        JOIN usuarios u ON u.id_usuario = i.id_usuario
+       LEFT JOIN salidas s ON s.id_ingreso = i.id_ingreso
+       LEFT JOIN usuarios us ON us.id_usuario = s.id_usuario
       WHERE i.id_estudiante = ?
       ORDER BY i.fecha_hora_ingreso DESC`, [integrante.id_estudiante]);
   return {
@@ -175,6 +192,29 @@ async function historial(numeroCarne) {
   };
 }
 
+async function historialPorPlaca(placa) {
+  const placaNormalizada = texto(placa).toUpperCase();
+  const [[motocicleta]] = await db.query(
+    `SELECT id_motocicleta, placa, tipo, marca, modelo, color
+       FROM motocicletas WHERE placa = ?`, [placaNormalizada]);
+  if (!motocicleta) throw new ErrorNegocio(404, 'Motocicleta no encontrada');
+  const [movimientos] = await db.query(
+    `SELECT i.id_ingreso, i.fecha_hora_ingreso, i.estado_movimiento,
+            e.numero_carne, e.nombre_completo,
+            ui.nombre_completo AS guarda_ingreso,
+            s.id_salida, s.fecha_hora_salida, s.tiempo_permanencia,
+            us.nombre_completo AS guarda_salida
+       FROM ingresos i
+       JOIN estudiantes e ON e.id_estudiante = i.id_estudiante
+       JOIN usuarios ui ON ui.id_usuario = i.id_usuario
+       LEFT JOIN salidas s ON s.id_ingreso = i.id_ingreso
+       LEFT JOIN usuarios us ON us.id_usuario = s.id_usuario
+      WHERE i.id_motocicleta = ?
+      ORDER BY i.fecha_hora_ingreso DESC`, [motocicleta.id_motocicleta]);
+  return { motocicleta, movimientos };
+}
+
 module.exports = {
-  listar, crear, obtenerPorCarne, actualizarAutorizacion, registrarMotocicleta, historial,
+  listar, crear, obtenerPorCarne, actualizarAutorizacion, registrarMotocicleta,
+  historial, historialPorPlaca,
 };

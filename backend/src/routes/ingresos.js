@@ -6,7 +6,7 @@ const router = express.Router();
 router.use(verificarToken, requerirRol('Administrador', 'Guarda'));
 
 router.get('/activos', async (req, res, next) => {
-  try { res.json(await ingresos.activos()); } catch (e) { next(e); }
+  try { res.json(await ingresos.activos(req.query.consulta || '')); } catch (e) { next(e); }
 });
 
 router.post('/', async (req, res, next) => {

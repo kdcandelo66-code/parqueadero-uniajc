@@ -74,15 +74,25 @@ test('CP-13 Registra integrantes con datos requeridos y rechaza carné duplicado
 });
 
 test('CP-14 Registra motocicleta asociada y rechaza placa duplicada', async () => {
-  const datos = { numero_carne: carne, placa, tipo: 'Motocicleta', marca: 'Honda', modelo: '2025', color: 'Negro' };
+  const datos = {
+    numero_carne: carne, placa, tipo: 'Motocicleta', marca: 'Honda',
+    modelo: '2025', color: 'Negro', estado: 'activa',
+  };
+  const estadoInvalido = await api('POST', '/api/motocicletas', {
+    token: adminToken, body: { ...datos, estado: 'en reparación' },
+  });
+  assert.equal(estadoInvalido.status, 400);
+
   const creada = await api('POST', '/api/motocicletas', { token: adminToken, body: datos });
   assert.equal(creada.status, 201);
   assert.equal(creada.data.motocicletas[0].placa, placa);
+  assert.equal(creada.data.motocicletas[0].estado_motocicleta, 'activa');
 
   const repetida = await api('POST', '/api/motocicletas', {
     token: adminToken, body: datos,
   });
   assert.equal(repetida.status, 409);
+  assert.match(repetida.data.mensaje, /placa ya está registrada/);
 });
 
 test('CP-15 Consulta por carné y bloquea ingresos no autorizados mostrando el motivo', async () => {
@@ -117,6 +127,9 @@ test('CP-16 Autoriza e ingresa la motocicleta una sola vez; conserva el historia
 
   const activos = await api('GET', '/api/ingresos/activos', { token: guardaToken });
   assert.ok(activos.data.some((i) => i.id_ingreso === ingreso.data.id_ingreso));
+  const consulta = await api('GET', `/api/integrantes/${carne}`, { token: guardaToken });
+  assert.equal(consulta.data.motocicletas[0].estado_movimiento, 'activo');
+  assert.ok(consulta.data.motocicletas[0].ultimo_ingreso);
   const historial = await api('GET', `/api/integrantes/${carne}/historial`, { token: guardaToken });
   assert.ok(historial.data.asociaciones[0].ingresos.some((i) => i.id_ingreso === ingreso.data.id_ingreso));
 });

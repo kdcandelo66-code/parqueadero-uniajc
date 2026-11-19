@@ -1,7 +1,12 @@
 const db = require('../config/db');
 const { ErrorNegocio } = require('./usuarios');
+const servicioParqueadero = require('./parqueadero');
 
-async function activos() {
+async function activos(consulta = '') {
+  if (typeof consulta !== 'string')
+    throw new ErrorNegocio(400, 'La búsqueda debe ser texto');
+  const busqueda = consulta.trim().toUpperCase();
+  if (busqueda.length > 30) throw new ErrorNegocio(400, 'La búsqueda no puede superar 30 caracteres');
   const [rows] = await db.query(
     `SELECT i.id_ingreso, i.fecha_hora_ingreso, e.numero_carne, e.nombre_completo,
             m.placa, u.nombre_completo AS guarda
@@ -10,7 +15,8 @@ async function activos() {
        JOIN motocicletas m ON m.id_motocicleta = i.id_motocicleta
        JOIN usuarios u ON u.id_usuario = i.id_usuario
       WHERE i.estado_movimiento = 'activo'
-      ORDER BY i.fecha_hora_ingreso DESC`);
+         AND (? = '' OR e.numero_carne = ? OR m.placa = ?)
+       ORDER BY i.fecha_hora_ingreso DESC`, [busqueda, busqueda, busqueda]);
   return rows;
 }
 
@@ -47,12 +53,14 @@ async function registrar({ numero_carne, id_motocicleta, id_usuario }) {
     const [[{ total }]] = await conn.query(
       `SELECT COUNT(*) AS total FROM ingresos WHERE estado_movimiento = 'activo'`);
     if (Number(total) >= parqueadero.capacidad_maxima)
-      throw new ErrorNegocio(409, 'El parqueadero está lleno');
+      throw new ErrorNegocio(409, 'NO AUTORIZADO: capacidad máxima alcanzada; no hay espacios disponibles');
 
     const [resultado] = await conn.query(
       `INSERT INTO ingresos (id_estudiante, id_motocicleta, id_usuario)
        VALUES (?, ?, ?)`, [integrante.id_estudiante, idMoto, id_usuario]);
     ingresoId = resultado.insertId;
+    await servicioParqueadero.sincronizarEspacios(
+      conn, parqueadero.id_parqueadero, parqueadero.capacidad_maxima);
     await conn.commit();
   } catch (e) {
     await conn.rollback();

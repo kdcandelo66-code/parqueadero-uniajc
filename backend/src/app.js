@@ -19,6 +19,9 @@ app.use('/api/parqueadero', require('./routes/parqueadero'));
 app.use('/api/integrantes', require('./routes/integrantes'));
 app.use('/api/motocicletas', require('./routes/motocicletas'));
 app.use('/api/ingresos', require('./routes/ingresos'));
+app.use('/api/salidas', require('./routes/salidas'));
+app.use('/api/novedades', require('./routes/novedades'));
+app.use('/api/reportes', require('./routes/reportes'));
 
 app.use((req, res) => res.status(404).json({ mensaje: 'Ruta no encontrada' }));
 

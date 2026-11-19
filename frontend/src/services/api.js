@@ -37,6 +37,19 @@ export const api = {
   consultarIntegrante: (carne) => pedir('GET', `/integrantes/${encodeURIComponent(carne)}`),
   historialIntegrante: (carne) => pedir('GET', `/integrantes/${encodeURIComponent(carne)}/historial`),
   crearMotocicleta: (datos) => pedir('POST', '/motocicletas', datos),
-  ingresosActivos: () => pedir('GET', '/ingresos/activos'),
+  ingresosActivos: (consulta = '') => pedir(
+    'GET', `/ingresos/activos${consulta ? `?consulta=${encodeURIComponent(consulta)}` : ''}`),
   registrarIngreso: (numero_carne, id_motocicleta) => pedir('POST', '/ingresos', { numero_carne, id_motocicleta }),
+  salidas: () => pedir('GET', '/salidas'),
+  registrarSalida: (id_ingreso) => pedir('POST', '/salidas', { id_ingreso }),
+  novedades: () => pedir('GET', '/novedades'),
+  crearNovedad: (datos) => pedir('POST', '/novedades', datos),
+  historialMotocicleta: (placa) => pedir('GET', `/motocicletas/${encodeURIComponent(placa)}/historial`),
+  reportes: ({ desde = '', hasta = '' } = {}) => {
+    const parametros = new URLSearchParams();
+    if (desde) parametros.set('desde', desde);
+    if (hasta) parametros.set('hasta', hasta);
+    const query = parametros.toString();
+    return pedir('GET', `/reportes${query ? `?${query}` : ''}`);
+  },
 };

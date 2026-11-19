@@ -9,6 +9,33 @@ async function ocupados(conn = db) {
   return Number(total);
 }
 
+async function sincronizarEspacios(conn, idParqueadero, capacidadMaxima) {
+  const total = await ocupados(conn);
+  const valores = [
+    total, capacidadMaxima - total, ((total / capacidadMaxima) * 100).toFixed(2),
+  ];
+  const [[espacio]] = await conn.query(
+    `SELECT id_espacio FROM espacios
+      WHERE id_parqueadero = ? ORDER BY id_espacio LIMIT 1 FOR UPDATE`,
+    [idParqueadero]);
+  if (espacio) {
+    await conn.query(
+      `UPDATE espacios
+          SET espacios_ocupados = ?, espacios_disponibles = ?,
+              porcentaje_ocupacion = ?, fecha_hora_actualizacion = NOW()
+        WHERE id_parqueadero = ?`,
+      [...valores, idParqueadero]);
+  } else {
+    await conn.query(
+      `INSERT INTO espacios
+         (id_parqueadero, espacios_ocupados, espacios_disponibles, porcentaje_ocupacion,
+          fecha_hora_actualizacion)
+       VALUES (?, ?, ?, ?, NOW())`,
+      [idParqueadero, ...valores]);
+  }
+  return total;
+}
+
 async function resumen() {
   const [[p]] = await db.query(
     `SELECT id_parqueadero, nombre, capacidad_maxima FROM parqueadero ORDER BY id_parqueadero LIMIT 1`);
@@ -38,11 +65,7 @@ async function cambiarCapacidad(valor) {
     if (capacidad < ocup)
       throw new ErrorNegocio(400, `La capacidad no puede ser menor que los espacios ocupados (${ocup})`);
     await conn.query(`UPDATE parqueadero SET capacidad_maxima = ? WHERE id_parqueadero = ?`, [capacidad, p.id_parqueadero]);
-    await conn.query(
-      `UPDATE espacios SET espacios_ocupados = ?, espacios_disponibles = ?,
-              porcentaje_ocupacion = ?, fecha_hora_actualizacion = NOW()
-        WHERE id_parqueadero = ?`,
-      [ocup, capacidad - ocup, ((ocup / capacidad) * 100).toFixed(2), p.id_parqueadero]);
+    await sincronizarEspacios(conn, p.id_parqueadero, capacidad);
     await conn.commit();
   } catch (e) {
     await conn.rollback();
@@ -53,4 +76,4 @@ async function cambiarCapacidad(valor) {
   return resumen();
 }
 
-module.exports = { resumen, cambiarCapacidad };
+module.exports = { resumen, cambiarCapacidad, sincronizarEspacios };

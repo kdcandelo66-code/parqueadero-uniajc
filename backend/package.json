@@ -8,7 +8,7 @@
     "dev": "node --watch src/server.js",
     "crear-admin": "node scripts/crear-usuario.js Administrador",
     "crear-guarda": "node scripts/crear-usuario.js Guarda",
-    "test": "node --test tests/sprint1.test.js tests/sprint2.test.js"
+    "test": "node --test --test-concurrency=1 tests/sprint1.test.js tests/sprint2.test.js tests/sprint3.test.js"
   },
   "engines": { "node": ">=20" },
   "dependencies": {

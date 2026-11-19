@@ -1,0 +1,134 @@
+
+> parqueadero-uniajc-backend@1.0.0 test
+> node --test --test-concurrency=1 tests/sprint1.test.js tests/sprint2.test.js tests/sprint3.test.js
+
+TAP version 13
+# Subtest: CP-01 Administrador con credenciales válidas recibe 200 y token con rol Administrador
+ok 1 - CP-01 Administrador con credenciales válidas recibe 200 y token con rol Administrador
+  ---
+  duration_ms: 301.8134
+  type: 'test'
+  ...
+# Subtest: CP-02 Contraseña incorrecta: 401 con mensaje genérico
+ok 2 - CP-02 Contraseña incorrecta: 401 con mensaje genérico
+  ---
+  duration_ms: 63.5532
+  type: 'test'
+  ...
+# Subtest: CP-03 Usuario inactivo no puede iniciar sesión
+ok 3 - CP-03 Usuario inactivo no puede iniciar sesión
+  ---
+  duration_ms: 3.3451
+  type: 'test'
+  ...
+# Subtest: CP-04 Ruta protegida sin token: 401
+ok 4 - CP-04 Ruta protegida sin token: 401
+  ---
+  duration_ms: 3.6515
+  type: 'test'
+  ...
+# Subtest: CP-05 Un Guarda llama a GET /api/usuarios: 403
+ok 5 - CP-05 Un Guarda llama a GET /api/usuarios: 403
+  ---
+  duration_ms: 68.6097
+  type: 'test'
+  ...
+# Subtest: CP-06 Crear usuario con nombre existente: 409
+ok 6 - CP-06 Crear usuario con nombre existente: 409
+  ---
+  duration_ms: 140.521
+  type: 'test'
+  ...
+# Subtest: CP-07 contrasena_hash es un hash bcrypt y no el texto de la contraseña
+ok 7 - CP-07 contrasena_hash es un hash bcrypt y no el texto de la contraseña
+  ---
+  duration_ms: 1.0314
+  type: 'test'
+  ...
+# Subtest: CP-08 Capacidad 0 o negativa: 400
+ok 8 - CP-08 Capacidad 0 o negativa: 400
+  ---
+  duration_ms: 62.9786
+  type: 'test'
+  ...
+# Subtest: CP-09 Capacidad menor que los espacios ocupados: 400
+ok 9 - CP-09 Capacidad menor que los espacios ocupados: 400
+  ---
+  duration_ms: 112.7546
+  type: 'test'
+  ...
+# Subtest: CP-10 Carné o placa repetidos: la base rechaza el segundo registro
+ok 10 - CP-10 Carné o placa repetidos: la base rechaza el segundo registro
+  ---
+  duration_ms: 27.8458
+  type: 'test'
+  ...
+# Subtest: CP-11 Dos ingresos activos para la misma motocicleta: la base rechaza el segundo
+ok 11 - CP-11 Dos ingresos activos para la misma motocicleta: la base rechaza el segundo
+  ---
+  duration_ms: 6.4519
+  type: 'test'
+  ...
+# Subtest: CP-12 Salida con id_ingreso inexistente o repetido: la base la rechaza
+ok 12 - CP-12 Salida con id_ingreso inexistente o repetido: la base la rechaza
+  ---
+  duration_ms: 5.0686
+  type: 'test'
+  ...
+# Subtest: CP-13 Registra integrantes con datos requeridos y rechaza carné duplicado
+ok 13 - CP-13 Registra integrantes con datos requeridos y rechaza carné duplicado
+  ---
+  duration_ms: 304.5553
+  type: 'test'
+  ...
+# Subtest: CP-14 Registra motocicleta asociada y rechaza placa duplicada
+ok 14 - CP-14 Registra motocicleta asociada y rechaza placa duplicada
+  ---
+  duration_ms: 16.9195
+  type: 'test'
+  ...
+# Subtest: CP-15 Consulta por carné y bloquea ingresos no autorizados mostrando el motivo
+ok 15 - CP-15 Consulta por carné y bloquea ingresos no autorizados mostrando el motivo
+  ---
+  duration_ms: 11.7194
+  type: 'test'
+  ...
+# Subtest: CP-16 Autoriza e ingresa la motocicleta una sola vez; conserva el historial
+ok 16 - CP-16 Autoriza e ingresa la motocicleta una sola vez; conserva el historial
+  ---
+  duration_ms: 26.2639
+  type: 'test'
+  ...
+# Subtest: CP-17 Registra salida, calcula permanencia y permite nuevo ingreso
+ok 17 - CP-17 Registra salida, calcula permanencia y permite nuevo ingreso
+  ---
+  duration_ms: 382.7155
+  type: 'test'
+  ...
+# Subtest: CP-18 Rechaza novedades inválidas y registra carné, placa y usuario
+ok 18 - CP-18 Rechaza novedades inválidas y registra carné, placa y usuario
+  ---
+  duration_ms: 13.1796
+  type: 'test'
+  ...
+# Subtest: CP-19 Rutas de salida y novedades requieren autenticación
+ok 19 - CP-19 Rutas de salida y novedades requieren autenticación
+  ---
+  duration_ms: 67.7172
+  type: 'test'
+  ...
+# Subtest: CP-20 El Administrador consulta reportes, filtros y movimientos
+ok 20 - CP-20 El Administrador consulta reportes, filtros y movimientos
+  ---
+  duration_ms: 8.4947
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2695.0804

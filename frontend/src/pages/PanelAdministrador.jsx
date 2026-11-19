@@ -1,6 +1,7 @@
 // Gestión del Administrador: usuarios, integrantes y motocicletas.
 import { useEffect, useState } from 'react';
 import Encabezado from './Encabezado.jsx';
+import HistorialMovimientos from './HistorialMovimientos.jsx';
 import { api } from '../services/api.js';
 
 const VACIO = { nombre_completo: '', usuario: '', contrasena: '', rol: 'Guarda' };
@@ -8,7 +9,9 @@ const INTEGRANTE_VACIO = {
   numero_carne: '', nombre_completo: '', documento_identidad: '',
   programa_academico: '', correo_institucional: '', telefono: '',
 };
-const MOTO_VACIA = { numero_carne: '', placa: '', tipo: 'Motocicleta', marca: '', modelo: '', color: '' };
+const MOTO_VACIA = {
+  numero_carne: '', placa: '', tipo: 'Motocicleta', marca: '', modelo: '', color: '', estado: 'activa',
+};
 
 export default function PanelAdministrador({ usuario, onSalir, demo = null }) {
   const [lista, setLista] = useState(demo?.usuarios || []);
@@ -18,7 +21,11 @@ export default function PanelAdministrador({ usuario, onSalir, demo = null }) {
   const [nuevo, setNuevo] = useState(VACIO);
   const [nuevoIntegrante, setNuevoIntegrante] = useState(INTEGRANTE_VACIO);
   const [nuevaMoto, setNuevaMoto] = useState(MOTO_VACIA);
+  const [errorMotocicleta, setErrorMotocicleta] = useState('');
   const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
+  const [reporte, setReporte] = useState(null);
+  const [fechasReporte, setFechasReporte] = useState({ desde: '', hasta: '' });
+  const [errorReporte, setErrorReporte] = useState('');
 
   async function cargar() {
     try {
@@ -27,11 +34,24 @@ export default function PanelAdministrador({ usuario, onSalir, demo = null }) {
     } catch (e) { setMensaje({ tipo: 'alerta', texto: e.message }); }
   }
   useEffect(() => { if (!demo) cargar(); }, [demo]);
+  useEffect(() => {
+    if (!demo) consultarReporte();
+  }, [demo]);
 
-  async function ejecutar(accion, exito) {
+  async function consultarReporte(e) {
+    e?.preventDefault();
+    setErrorReporte('');
+    try { setReporte(await api.reportes(fechasReporte)); }
+    catch (error) { setErrorReporte(error.message); }
+  }
+
+  async function ejecutar(accion, exito, alError) {
     setMensaje({ tipo: '', texto: '' });
     try { await accion(); setMensaje({ tipo: 'exito', texto: exito }); await cargar(); }
-    catch (e) { setMensaje({ tipo: 'alerta', texto: e.message }); }
+    catch (e) {
+      if (alError) alError(e.message);
+      else setMensaje({ tipo: 'alerta', texto: e.message });
+    }
   }
 
   const crear = (e) => {
@@ -47,10 +67,15 @@ export default function PanelAdministrador({ usuario, onSalir, demo = null }) {
   };
   const crearMotocicleta = (e) => {
     e.preventDefault();
+    setErrorMotocicleta('');
     ejecutar(async () => {
       await api.crearMotocicleta(nuevaMoto);
       setNuevaMoto(MOTO_VACIA);
-    }, 'Motocicleta registrada y asociada al integrante.');
+    }, 'Motocicleta registrada y asociada al integrante.', setErrorMotocicleta);
+  };
+  const actualizarMotocicleta = (campo, valor) => {
+    setErrorMotocicleta('');
+    setNuevaMoto((actual) => ({ ...actual, [campo]: valor }));
   };
   const actualizarBorrador = (carne, campo, valor) => setIntegrantes((actuales) =>
     actuales.map((integrante) => integrante.numero_carne === carne
@@ -124,18 +149,24 @@ export default function PanelAdministrador({ usuario, onSalir, demo = null }) {
           <section className="tarjeta">
             <h3>Registrar y asociar motocicleta</h3>
             <form className="rejilla" onSubmit={crearMotocicleta}>
-              <select value={nuevaMoto.numero_carne} onChange={(e) => setNuevaMoto({ ...nuevaMoto, numero_carne: e.target.value })} required>
+              <select value={nuevaMoto.numero_carne} onChange={(e) => actualizarMotocicleta('numero_carne', e.target.value)} required>
                 <option value="">Seleccione un integrante</option>
                 {integrantes.filter((i) => i.estado === 'activo').map((i) =>
                   <option key={i.id_estudiante} value={i.numero_carne}>{i.numero_carne} · {i.nombre_completo}</option>)}
               </select>
-              <input placeholder="Placa" value={nuevaMoto.placa} onChange={(e) => setNuevaMoto({ ...nuevaMoto, placa: e.target.value.toUpperCase() })} required />
-              <input placeholder="Tipo" value={nuevaMoto.tipo} onChange={(e) => setNuevaMoto({ ...nuevaMoto, tipo: e.target.value })} required />
-              <input placeholder="Marca" value={nuevaMoto.marca} onChange={(e) => setNuevaMoto({ ...nuevaMoto, marca: e.target.value })} required />
-              <input placeholder="Modelo" value={nuevaMoto.modelo} onChange={(e) => setNuevaMoto({ ...nuevaMoto, modelo: e.target.value })} required />
-              <input placeholder="Color" value={nuevaMoto.color} onChange={(e) => setNuevaMoto({ ...nuevaMoto, color: e.target.value })} required />
+              <input placeholder="Placa" value={nuevaMoto.placa} onChange={(e) => actualizarMotocicleta('placa', e.target.value.toUpperCase())} required />
+              <input placeholder="Tipo" value={nuevaMoto.tipo} onChange={(e) => actualizarMotocicleta('tipo', e.target.value)} required />
+              <input placeholder="Marca" value={nuevaMoto.marca} onChange={(e) => actualizarMotocicleta('marca', e.target.value)} required />
+              <input placeholder="Modelo" value={nuevaMoto.modelo} onChange={(e) => actualizarMotocicleta('modelo', e.target.value)} required />
+              <input placeholder="Color" value={nuevaMoto.color} onChange={(e) => actualizarMotocicleta('color', e.target.value)} required />
+              <select aria-label="Estado de la motocicleta" value={nuevaMoto.estado}
+                onChange={(e) => actualizarMotocicleta('estado', e.target.value)}>
+                <option value="activa">Activa</option>
+                <option value="inactiva">Inactiva</option>
+              </select>
               <button disabled={!integrantes.some((i) => i.estado === 'activo')}>Registrar motocicleta</button>
             </form>
+            {errorMotocicleta && <p className="alerta" role="alert">{errorMotocicleta}</p>}
           </section>
         </div>
 
@@ -192,7 +223,61 @@ export default function PanelAdministrador({ usuario, onSalir, demo = null }) {
           </table>
           <p className="nota">Los usuarios no se eliminan: se inactivan para conservar la trazabilidad de los movimientos.</p>
         </section>
+
+        {!demo && (
+          <section className="tarjeta">
+            <h3>Reportes de ingresos y salidas</h3>
+            <form className="fila" onSubmit={consultarReporte}>
+              <label>Desde
+                <input type="date" value={fechasReporte.desde}
+                  onChange={(e) => setFechasReporte({ ...fechasReporte, desde: e.target.value })} />
+              </label>
+              <label>Hasta
+                <input type="date" value={fechasReporte.hasta}
+                  onChange={(e) => setFechasReporte({ ...fechasReporte, hasta: e.target.value })} />
+              </label>
+              <button>Consultar reporte</button>
+            </form>
+            {errorReporte && <p className="alerta" role="status">{errorReporte}</p>}
+            {reporte && (
+              <>
+                <section className="indicadores">
+                  <Indicador titulo="Ingresos en el periodo" valor={reporte.resumen.ingresos} />
+                  <Indicador titulo="Salidas en el periodo" valor={reporte.resumen.salidas} />
+                  <Indicador titulo="Ingresos activos" valor={reporte.resumen.ingresos_activos} tono="ocupado" />
+                  <Indicador titulo="Disponibles" valor={reporte.resumen.espacios_disponibles} tono="libre" />
+                </section>
+                <p className="nota">Se muestran hasta {reporte.limite_movimientos} movimientos del periodo.</p>
+                {reporte.movimientos.length ? (
+                  <div className="tabla-desbordable">
+                    <table>
+                      <thead><tr><th>Fecha y hora</th><th>Movimiento</th><th>Integrante</th><th>Carné</th><th>Placa</th><th>Responsable</th></tr></thead>
+                      <tbody>{reporte.movimientos.map((movimiento) => (
+                        <tr key={`${movimiento.tipo}-${movimiento.id_movimiento}`}>
+                          <td>{new Date(movimiento.fecha_hora).toLocaleString()}</td>
+                          <td>{movimiento.tipo}</td><td>{movimiento.nombre_completo}</td>
+                          <td>{movimiento.numero_carne}</td><td>{movimiento.placa}</td>
+                          <td>{movimiento.responsable}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                ) : <p className="vacio">No hay movimientos en el periodo consultado.</p>}
+              </>
+            )}
+          </section>
+        )}
+        {!demo && <HistorialMovimientos />}
       </main>
     </>
+  );
+}
+
+function Indicador({ titulo, valor, tono = '' }) {
+  return (
+    <div className={`indicador ${tono}`}>
+      <span>{titulo}</span>
+      <strong>{valor ?? '—'}</strong>
+    </div>
   );
 }

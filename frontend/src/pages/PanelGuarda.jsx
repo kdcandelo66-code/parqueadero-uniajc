@@ -1,6 +1,7 @@
 // Panel del Guarda: consulta de autorización e ingreso de motocicletas.
 import { useEffect, useState } from 'react';
 import Encabezado from './Encabezado.jsx';
+import HistorialMovimientos from './HistorialMovimientos.jsx';
 import { api } from '../services/api.js';
 
 export default function PanelGuarda({ usuario, onSalir, resumenInicial = null }) {
@@ -9,13 +10,23 @@ export default function PanelGuarda({ usuario, onSalir, resumenInicial = null })
   const [carne, setCarne] = useState('');
   const [motocicleta, setMotocicleta] = useState('');
   const [ingresos, setIngresos] = useState([]);
+  const [consultaSalida, setConsultaSalida] = useState('');
+  const [ingresosEncontrados, setIngresosEncontrados] = useState(null);
+  const [salidas, setSalidas] = useState([]);
+  const [novedades, setNovedades] = useState([]);
+  const [nuevaNovedad, setNuevaNovedad] = useState({ numero_carne: '', placa: '', descripcion: '' });
   const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
 
   async function cargarPanel() {
     try {
-      const [p, i] = await Promise.all([api.parqueadero(), api.ingresosActivos()]);
+      const [p, i, s, n] = await Promise.all([
+        api.parqueadero(), api.ingresosActivos(), api.salidas(), api.novedades(),
+      ]);
       setResumen(p);
       setIngresos(i);
+      setIngresosEncontrados(null);
+      setSalidas(s);
+      setNovedades(n);
     } catch (e) { setMensaje({ tipo: 'alerta', texto: e.message }); }
   }
   useEffect(() => { cargarPanel(); }, []);
@@ -37,6 +48,37 @@ export default function PanelGuarda({ usuario, onSalir, resumenInicial = null })
     try {
       await api.registrarIngreso(integrante.numero_carne, Number(motocicleta));
       setMensaje({ tipo: 'exito', texto: 'Ingreso registrado correctamente.' });
+      await cargarPanel();
+    } catch (err) { setMensaje({ tipo: 'alerta', texto: err.message }); }
+  }
+
+  async function registrarSalida(idIngreso) {
+    setMensaje({ tipo: '', texto: '' });
+    try {
+      await api.registrarSalida(idIngreso);
+      setMensaje({ tipo: 'exito', texto: 'Salida registrada correctamente.' });
+      await cargarPanel();
+    } catch (err) { setMensaje({ tipo: 'alerta', texto: err.message }); }
+  }
+
+  async function buscarIngresoActivo(e) {
+    e.preventDefault();
+    setMensaje({ tipo: '', texto: '' });
+    try {
+      const encontrados = await api.ingresosActivos(consultaSalida.trim());
+      setIngresosEncontrados(encontrados);
+      if (!encontrados.length)
+        setMensaje({ tipo: 'alerta', texto: 'No hay un ingreso activo para ese carné o placa.' });
+    } catch (err) { setMensaje({ tipo: 'alerta', texto: err.message }); }
+  }
+
+  async function reportarNovedad(e) {
+    e.preventDefault();
+    setMensaje({ tipo: '', texto: '' });
+    try {
+      await api.crearNovedad(nuevaNovedad);
+      setNuevaNovedad({ numero_carne: '', placa: '', descripcion: '' });
+      setMensaje({ tipo: 'exito', texto: 'Novedad registrada correctamente.' });
       await cargarPanel();
     } catch (err) { setMensaje({ tipo: 'alerta', texto: err.message }); }
   }
@@ -69,38 +111,128 @@ export default function PanelGuarda({ usuario, onSalir, resumenInicial = null })
                 {integrante.estado_autorizacion === 'NO AUTORIZADO' && ` · Motivo: ${integrante.motivo_bloqueo || 'No especificado'}`}
               </p>
               {integrante.motocicletas.length > 0 ? (
-                <div className="fila">
-                  <label>Motocicleta asociada
-                    <select value={motocicleta} onChange={(e) => setMotocicleta(e.target.value)}>
-                      {integrante.motocicletas.map((m) =>
-                        <option key={m.id_motocicleta} value={m.id_motocicleta}>{m.placa} · {m.marca} {m.modelo} · {m.color}</option>)}
-                    </select>
-                  </label>
-                  <button type="button" disabled={integrante.estado_autorizacion !== 'AUTORIZADO'} onClick={registrarIngreso}>
-                    Registrar ingreso
-                  </button>
-                </div>
+                <>
+                  <div className="fila">
+                    <label>Motocicleta asociada
+                      <select value={motocicleta} onChange={(e) => setMotocicleta(e.target.value)}>
+                        {integrante.motocicletas.map((m) =>
+                          <option key={m.id_motocicleta} value={m.id_motocicleta}>
+                            {m.placa} · {m.marca} {m.modelo} · {m.color}
+                          </option>)}
+                      </select>
+                    </label>
+                    <button type="button" disabled={integrante.estado_autorizacion !== 'AUTORIZADO'} onClick={registrarIngreso}>
+                      Registrar ingreso
+                    </button>
+                  </div>
+                  {integrante.motocicletas.filter((m) => String(m.id_motocicleta) === String(motocicleta))
+                    .map((m) => (
+                      <p className="nota" key={m.id_motocicleta}>
+                        Estado actual: {m.estado_movimiento === 'activo' ? 'En parqueadero' : 'Fuera del parqueadero'}
+                        {' · '}Estado de motocicleta: {m.estado_motocicleta === 'inactiva' ? 'Inactiva' : 'Activa'}
+                        {' · '}Último ingreso: {m.ultimo_ingreso
+                          ? new Date(m.ultimo_ingreso).toLocaleString('es-CO')
+                          : 'Sin ingresos registrados'}
+                      </p>
+                    ))}
+                </>
               ) : <p className="nota">No tiene motocicletas activas asociadas.</p>}
             </div>
           )}
         </section>
 
         <section className="tarjeta">
-          <h3>Ingresos activos</h3>
+          <h3>Registrar salida</h3>
+          <form className="busqueda" onSubmit={buscarIngresoActivo}>
+            <input aria-label="Buscar ingreso activo por carné o placa"
+              placeholder="Buscar por carné o placa" value={consultaSalida}
+              onChange={(e) => setConsultaSalida(e.target.value.toUpperCase())} required />
+            <button>Buscar ingreso activo</button>
+          </form>
+          {ingresosEncontrados?.length > 0 && (
+            <div className="tabla-desbordable">
+              <table>
+                <thead><tr><th>Ingreso</th><th>Integrante</th><th>Carné</th><th>Placa</th><th></th></tr></thead>
+                <tbody>{ingresosEncontrados.map((i) => (
+                  <tr key={i.id_ingreso}>
+                    <td>{new Date(i.fecha_hora_ingreso).toLocaleString()}</td>
+                    <td>{i.nombre_completo}</td><td>{i.numero_carne}</td><td>{i.placa}</td>
+                    <td><button onClick={() => registrarSalida(i.id_ingreso)}>Registrar salida</button></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="tarjeta">
+          <h3>Ingresos activos recientes</h3>
           {ingresos.length ? (
             <div className="tabla-desbordable">
               <table>
-                <thead><tr><th>Hora</th><th>Integrante</th><th>Carné</th><th>Placa</th><th>Guarda</th></tr></thead>
+                <thead><tr><th>Hora</th><th>Integrante</th><th>Carné</th><th>Placa</th><th>Guarda</th><th></th></tr></thead>
                 <tbody>{ingresos.map((i) => (
                   <tr key={i.id_ingreso}>
                     <td>{new Date(i.fecha_hora_ingreso).toLocaleString()}</td>
                     <td>{i.nombre_completo}</td><td>{i.numero_carne}</td><td>{i.placa}</td><td>{i.guarda}</td>
+                    <td><button className="secundario" onClick={() => registrarSalida(i.id_ingreso)}>Registrar salida</button></td>
                   </tr>
                 ))}</tbody>
               </table>
             </div>
           ) : <p className="vacio">Sin ingresos activos.</p>}
         </section>
+
+        <section className="tarjeta">
+          <h3>Últimas salidas</h3>
+          {salidas.length ? (
+            <div className="tabla-desbordable">
+              <table>
+                <thead><tr><th>Hora de salida</th><th>Integrante</th><th>Carné</th><th>Placa</th><th>Permanencia (min)</th><th>Guarda</th></tr></thead>
+                <tbody>{salidas.map((s) => (
+                  <tr key={s.id_salida}>
+                    <td>{new Date(s.fecha_hora_salida).toLocaleString()}</td>
+                    <td>{s.nombre_completo}</td><td>{s.numero_carne}</td><td>{s.placa}</td>
+                    <td>{s.tiempo_permanencia}</td><td>{s.guarda}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          ) : <p className="vacio">Sin salidas registradas.</p>}
+        </section>
+
+        <section className="tarjeta">
+          <h3>Reportar novedad</h3>
+          <form className="rejilla" onSubmit={reportarNovedad}>
+            <input placeholder="Carné (opcional)" value={nuevaNovedad.numero_carne}
+              onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, numero_carne: e.target.value })} />
+            <input placeholder="Placa (opcional)" value={nuevaNovedad.placa}
+              onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, placa: e.target.value.toUpperCase() })} />
+            <textarea placeholder="Descripción de la novedad" maxLength={300} required
+              value={nuevaNovedad.descripcion}
+              onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, descripcion: e.target.value })} />
+            <button>Guardar novedad</button>
+          </form>
+        </section>
+
+        <section className="tarjeta">
+          <h3>Últimas novedades</h3>
+          {novedades.length ? (
+            <div className="tabla-desbordable">
+              <table>
+                <thead><tr><th>Fecha</th><th>Descripción</th><th>Carné</th><th>Placa</th><th>Registró</th></tr></thead>
+                <tbody>{novedades.map((n) => (
+                  <tr key={n.id_novedad}>
+                    <td>{new Date(n.fecha_hora).toLocaleString()}</td>
+                    <td>{n.descripcion}</td><td>{n.numero_carne || '—'}</td>
+                    <td>{n.placa || '—'}</td><td>{n.usuario}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          ) : <p className="vacio">Sin novedades registradas.</p>}
+        </section>
+        <HistorialMovimientos />
       </main>
     </>
   );

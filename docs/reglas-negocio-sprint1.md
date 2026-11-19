@@ -25,7 +25,9 @@ Reglas verificadas por el esquema y la implementación actuales. Las restriccion
 13. La capacidad no puede reducirse por debajo de la cantidad de ingresos activos.
 14. Al cambiar la capacidad, la API actualiza en una transacción la capacidad y los valores de ocupación, disponibilidad y porcentaje.
 
-## Casos que las pruebas no cubren
+## Funcionalidad añadida después del Sprint 1
 
-- La base de datos rechaza salidas repetidas o sin ingreso, pero todavía no existe una ruta de salida en este incremento.
-- Las reglas de autorización, asociación de motocicletas y registro de ingresos implementadas en el Sprint 2 están descritas en `docs/reglas-negocio-sprint2.md`. El tratamiento de novedades sigue pendiente.
+- La ruta de salida y el registro de novedades se implementaron en el Sprint 3. Sus reglas están en
+  `docs/reglas-negocio-sprint3.md`.
+- Las reglas de autorización, asociación de motocicletas y registro de ingresos implementadas en el
+  Sprint 2 están descritas en `docs/reglas-negocio-sprint2.md`.

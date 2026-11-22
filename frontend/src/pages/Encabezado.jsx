@@ -1,4 +1,9 @@
 export default function Encabezado({ usuario, onSalir }) {
+  const confirmarSalida = () => {
+    if (window.confirm('¿Desea cerrar la sesión actual?'))
+      onSalir();
+  };
+
   return (
     <header className="barra">
       <div className="marca">
@@ -10,7 +15,7 @@ export default function Encabezado({ usuario, onSalir }) {
       </div>
       <div className="sesion">
         <span>{usuario.nombre} · <b>{usuario.rol}</b></span>
-        <button className="secundario" onClick={onSalir}>Cerrar sesión</button>
+        <button className="secundario" onClick={confirmarSalida}>Cerrar sesión</button>
       </div>
     </header>
   );

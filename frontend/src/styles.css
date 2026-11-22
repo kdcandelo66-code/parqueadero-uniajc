@@ -15,6 +15,9 @@ label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 14px; 
 .login-tarjeta h1 { margin: 4px 0 0; font-size: 24px; }
 .login-tarjeta .sub { margin: 4px 0 22px; color: #5b6878; font-size: 14px; }
 .login-tarjeta button { width: 100%; padding: 12px; font-size: 16px; }
+.login-tarjeta button.cargando { display:flex; align-items:center; justify-content:center; gap:8px; background:#174f8a; }
+.spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.45); border-top-color:#fff; border-radius:50%; animation:girar .7s linear infinite; }
+@keyframes girar { to { transform:rotate(360deg); } }
 .alerta { background: #fdecea; color: var(--rojo); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
 .exito { background: #e8f5e9; color: var(--verde); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
 .nota { font-size: 13px; color: #5b6878; }

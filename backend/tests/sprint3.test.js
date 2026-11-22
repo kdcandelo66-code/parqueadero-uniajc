@@ -91,7 +91,7 @@ after(async () => {
   if (server) await new Promise((ok) => server.close(ok));
 });
 
-test('CP-17 Registra salida, calcula permanencia y permite nuevo ingreso', async () => {
+test('CP-19 Registra salida, calcula permanencia y permite nuevo ingreso', async () => {
   const sinId = await api('POST', '/api/salidas', { body: {} });
   assert.equal(sinId.status, 400);
   const inexistente = await api('POST', '/api/salidas', { body: { id_ingreso: 999999999 } });
@@ -155,7 +155,7 @@ test('CP-17 Registra salida, calcula permanencia y permite nuevo ingreso', async
   assert.ok(recientes.data.some((item) => item.id_salida === salida.data.id_salida));
 });
 
-test('CP-18 Rechaza novedades inválidas y registra carné, placa y usuario', async () => {
+test('CP-20 Rechaza novedades inválidas y registra carné, placa y usuario', async () => {
   const vacia = await api('POST', '/api/novedades', { body: { descripcion: '   ' } });
   assert.equal(vacia.status, 400);
 
@@ -180,7 +180,7 @@ test('CP-18 Rechaza novedades inválidas y registra carné, placa y usuario', as
   assert.ok(listado.data.some((item) => item.id_novedad === creada.data.id_novedad));
 });
 
-test('CP-19 Rutas de salida y novedades requieren autenticación', async () => {
+test('CP-21 Rutas de salida y novedades requieren autenticación', async () => {
   token = '';
   assert.equal((await api('GET', '/api/salidas')).status, 401);
   assert.equal((await api('GET', '/api/novedades')).status, 401);
@@ -189,7 +189,7 @@ test('CP-19 Rutas de salida y novedades requieren autenticación', async () => {
   })).data.token;
 });
 
-test('CP-20 El Administrador consulta reportes, filtros y movimientos', async () => {
+test('CP-22 El Administrador consulta reportes, filtros y movimientos', async () => {
   const reporte = await api('GET', '/api/reportes', { authToken: adminToken });
   assert.equal(reporte.status, 200);
   assert.ok(reporte.data.resumen.ingresos >= 1);

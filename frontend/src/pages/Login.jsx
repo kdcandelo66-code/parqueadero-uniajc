@@ -34,7 +34,9 @@ export default function Login({ onIngreso, errorInicial = '' }) {
           <input type="password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} autoComplete="current-password" required />
         </label>
         {error && <p className="alerta" role="alert">{error}</p>}
-        <button disabled={cargando}>{cargando ? 'Verificando…' : 'Ingresar'}</button>
+        <button className={cargando ? 'cargando' : ''} disabled={cargando} aria-live="polite">
+          {cargando ? <><span className="spinner" aria-hidden="true" />Verificando…</> : 'Ingresar'}
+        </button>
         <p className="nota">Acceso solo para personal autorizado (Administrador y Guarda).</p>
       </form>
     </main>

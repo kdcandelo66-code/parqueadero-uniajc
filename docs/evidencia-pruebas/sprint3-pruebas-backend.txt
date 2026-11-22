@@ -1,134 +1,142 @@
-
-> parqueadero-uniajc-backend@1.0.0 test
-> node --test --test-concurrency=1 tests/sprint1.test.js tests/sprint2.test.js tests/sprint3.test.js
-
 TAP version 13
 # Subtest: CP-01 Administrador con credenciales válidas recibe 200 y token con rol Administrador
 ok 1 - CP-01 Administrador con credenciales válidas recibe 200 y token con rol Administrador
   ---
-  duration_ms: 301.8134
+  duration_ms: 298.4008
   type: 'test'
   ...
 # Subtest: CP-02 Contraseña incorrecta: 401 con mensaje genérico
 ok 2 - CP-02 Contraseña incorrecta: 401 con mensaje genérico
   ---
-  duration_ms: 63.5532
+  duration_ms: 63.4899
   type: 'test'
   ...
 # Subtest: CP-03 Usuario inactivo no puede iniciar sesión
 ok 3 - CP-03 Usuario inactivo no puede iniciar sesión
   ---
-  duration_ms: 3.3451
+  duration_ms: 3.4262
   type: 'test'
   ...
 # Subtest: CP-04 Ruta protegida sin token: 401
 ok 4 - CP-04 Ruta protegida sin token: 401
   ---
-  duration_ms: 3.6515
+  duration_ms: 3.3462
   type: 'test'
   ...
 # Subtest: CP-05 Un Guarda llama a GET /api/usuarios: 403
 ok 5 - CP-05 Un Guarda llama a GET /api/usuarios: 403
   ---
-  duration_ms: 68.6097
+  duration_ms: 61.829
   type: 'test'
   ...
 # Subtest: CP-06 Crear usuario con nombre existente: 409
 ok 6 - CP-06 Crear usuario con nombre existente: 409
   ---
-  duration_ms: 140.521
+  duration_ms: 124.2052
   type: 'test'
   ...
 # Subtest: CP-07 contrasena_hash es un hash bcrypt y no el texto de la contraseña
 ok 7 - CP-07 contrasena_hash es un hash bcrypt y no el texto de la contraseña
   ---
-  duration_ms: 1.0314
+  duration_ms: 0.8891
   type: 'test'
   ...
 # Subtest: CP-08 Capacidad 0 o negativa: 400
 ok 8 - CP-08 Capacidad 0 o negativa: 400
   ---
-  duration_ms: 62.9786
+  duration_ms: 65.2662
   type: 'test'
   ...
 # Subtest: CP-09 Capacidad menor que los espacios ocupados: 400
 ok 9 - CP-09 Capacidad menor que los espacios ocupados: 400
   ---
-  duration_ms: 112.7546
+  duration_ms: 97.5003
   type: 'test'
   ...
 # Subtest: CP-10 Carné o placa repetidos: la base rechaza el segundo registro
 ok 10 - CP-10 Carné o placa repetidos: la base rechaza el segundo registro
   ---
-  duration_ms: 27.8458
+  duration_ms: 5.6173
   type: 'test'
   ...
 # Subtest: CP-11 Dos ingresos activos para la misma motocicleta: la base rechaza el segundo
 ok 11 - CP-11 Dos ingresos activos para la misma motocicleta: la base rechaza el segundo
   ---
-  duration_ms: 6.4519
+  duration_ms: 9.3768
   type: 'test'
   ...
 # Subtest: CP-12 Salida con id_ingreso inexistente o repetido: la base la rechaza
 ok 12 - CP-12 Salida con id_ingreso inexistente o repetido: la base la rechaza
   ---
-  duration_ms: 5.0686
+  duration_ms: 20.1082
   type: 'test'
   ...
 # Subtest: CP-13 Registra integrantes con datos requeridos y rechaza carné duplicado
 ok 13 - CP-13 Registra integrantes con datos requeridos y rechaza carné duplicado
   ---
-  duration_ms: 304.5553
+  duration_ms: 303.0647
   type: 'test'
   ...
 # Subtest: CP-14 Registra motocicleta asociada y rechaza placa duplicada
 ok 14 - CP-14 Registra motocicleta asociada y rechaza placa duplicada
   ---
-  duration_ms: 16.9195
+  duration_ms: 19.7367
   type: 'test'
   ...
-# Subtest: CP-15 Consulta por carné y bloquea ingresos no autorizados mostrando el motivo
-ok 15 - CP-15 Consulta por carné y bloquea ingresos no autorizados mostrando el motivo
+# Subtest: CP-15 HU-09 Consulta por carné y muestra autorización y motocicleta asociada
+ok 15 - CP-15 HU-09 Consulta por carné y muestra autorización y motocicleta asociada
   ---
-  duration_ms: 11.7194
+  duration_ms: 4.5568
   type: 'test'
   ...
-# Subtest: CP-16 Autoriza e ingresa la motocicleta una sola vez; conserva el historial
-ok 16 - CP-16 Autoriza e ingresa la motocicleta una sola vez; conserva el historial
+# Subtest: CP-16 HU-11 Autoriza y registra un ingreso activo
+ok 16 - CP-16 HU-11 Autoriza y registra un ingreso activo
   ---
-  duration_ms: 26.2639
+  duration_ms: 24.3385
   type: 'test'
   ...
-# Subtest: CP-17 Registra salida, calcula permanencia y permite nuevo ingreso
-ok 17 - CP-17 Registra salida, calcula permanencia y permite nuevo ingreso
+# Subtest: CP-17 HU-08 Consulta el historial asociado al integrante y su motocicleta
+ok 17 - CP-17 HU-08 Consulta el historial asociado al integrante y su motocicleta
   ---
-  duration_ms: 382.7155
+  duration_ms: 4.8096
   type: 'test'
   ...
-# Subtest: CP-18 Rechaza novedades inválidas y registra carné, placa y usuario
-ok 18 - CP-18 Rechaza novedades inválidas y registra carné, placa y usuario
+# Subtest: CP-18 HU-10 Rechaza ingresos no autorizados y al alcanzar la capacidad máxima
+ok 18 - CP-18 HU-10 Rechaza ingresos no autorizados y al alcanzar la capacidad máxima
   ---
-  duration_ms: 13.1796
+  duration_ms: 60.069
   type: 'test'
   ...
-# Subtest: CP-19 Rutas de salida y novedades requieren autenticación
-ok 19 - CP-19 Rutas de salida y novedades requieren autenticación
+# Subtest: CP-19 Registra salida, calcula permanencia y permite nuevo ingreso
+ok 19 - CP-19 Registra salida, calcula permanencia y permite nuevo ingreso
   ---
-  duration_ms: 67.7172
+  duration_ms: 398.3898
   type: 'test'
   ...
-# Subtest: CP-20 El Administrador consulta reportes, filtros y movimientos
-ok 20 - CP-20 El Administrador consulta reportes, filtros y movimientos
+# Subtest: CP-20 Rechaza novedades inválidas y registra carné, placa y usuario
+ok 20 - CP-20 Rechaza novedades inválidas y registra carné, placa y usuario
   ---
-  duration_ms: 8.4947
+  duration_ms: 14.7854
   type: 'test'
   ...
-1..20
-# tests 20
+# Subtest: CP-21 Rutas de salida y novedades requieren autenticación
+ok 21 - CP-21 Rutas de salida y novedades requieren autenticación
+  ---
+  duration_ms: 57.1232
+  type: 'test'
+  ...
+# Subtest: CP-22 El Administrador consulta reportes, filtros y movimientos
+ok 22 - CP-22 El Administrador consulta reportes, filtros y movimientos
+  ---
+  duration_ms: 9.8273
+  type: 'test'
+  ...
+1..22
+# tests 22
 # suites 0
-# pass 20
+# pass 22
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 2695.0804
+# duration_ms 2771.2875
